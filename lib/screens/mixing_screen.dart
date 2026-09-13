@@ -33,10 +33,10 @@ class _MixingScreenState extends State<MixingScreen>
 
   static const _basicSize = 210.0;
   static const _advancedSize = 350.0;
-  static const _basicToggleTop = 140.0;
+  static const _basicToggleTop = 117.0;
   static const _advancedToggleTop = 25.0;
   static const _toggleHeight = 46.0;
-  static const _basicDiscOffsetY = 33.0;
+  static const _basicDiscOffsetY = 10.0;
   static const _advancedDiscOffsetY = -11.0;
 
   static const _orbitalItems = <_OrbitalItemData>[
@@ -164,7 +164,7 @@ class _MixingScreenState extends State<MixingScreen>
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
-                      final height = 186.0 + (_controller.value * (360.0 - 186.0));
+                      final height = 163.0 + (_controller.value * (360.0 - 163.0));
                       return SizedBox(
                         height: height,
                         child: OverflowBox(

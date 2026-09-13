@@ -104,7 +104,7 @@ class _MixingScreenState extends State<MixingScreen>
   void _onOrbitalItemTap(int index) {
     if (_orbitController.isAnimating) return;
 
-    final currentAngle = (index * 60.0 + _orbitTo) % 360;
+    final currentAngle = (index * 45.0 + _orbitTo) % 360;
     var delta = (180.0 - currentAngle) % 360;
     if (delta <= 0) delta += 360;
     if (delta < 1) return;
@@ -113,7 +113,7 @@ class _MixingScreenState extends State<MixingScreen>
     _orbitTo = _orbitTo + delta;
 
     _orbitController.duration = Duration(
-      milliseconds: (300 + delta * 2.5).round().clamp(400, 1200),
+      milliseconds: (600 + delta * 4.0).round().clamp(800, 2000),
     );
     _orbitAnim = Tween<double>(begin: _orbitFrom, end: _orbitTo).animate(
       CurvedAnimation(parent: _orbitController, curve: Curves.easeInOutCubic),
@@ -265,11 +265,11 @@ class _MixingScreenState extends State<MixingScreen>
       double centerX, double discCenterY, double opacity) {
     if (opacity <= 0) return [];
 
-    const orbitR = 158.0;
+    const orbitR = 135.0;
     const activeSize = 82.0;
     const circleSize = 34.0;
     const imageCircleSize = 40.0;
-    const morphRange = 25.0;
+    const morphRange = 50.0;
     const hitPadding = 10.0;
 
     final rotation = _currentOrbitAngle;
@@ -277,17 +277,17 @@ class _MixingScreenState extends State<MixingScreen>
 
     for (int i = 0; i < _orbitalItems.length; i++) {
       final item = _orbitalItems[i];
-      final baseDeg = i * 60.0;
+      final baseDeg = i * 45.0;
       var currentDeg = (baseDeg + rotation) % 360;
       if (currentDeg < 0) currentDeg += 360;
 
       double posOpacity;
-      if (currentDeg >= 75 && currentDeg <= 285) {
+      if (currentDeg >= 115 && currentDeg <= 245) {
         posOpacity = 1.0;
-      } else if (currentDeg > 45 && currentDeg < 75) {
-        posOpacity = (currentDeg - 45) / 30;
-      } else if (currentDeg > 285 && currentDeg < 315) {
-        posOpacity = (315 - currentDeg) / 30;
+      } else if (currentDeg > 85 && currentDeg < 115) {
+        posOpacity = (currentDeg - 85) / 30;
+      } else if (currentDeg > 245 && currentDeg < 275) {
+        posOpacity = (275 - currentDeg) / 30;
       } else {
         posOpacity = 0.0;
       }

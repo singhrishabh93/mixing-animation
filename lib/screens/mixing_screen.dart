@@ -141,95 +141,43 @@ class _MixingScreenState extends State<MixingScreen>
       backgroundColor: const Color(0xFF0F0D1B),
       body: Stack(
         children: [
+          // Static Figma Background Image
+          Positioned.fill(
+            child: AnimatedOpacity(
+              opacity: _isAdvanced ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 600),
+              child: Image.asset(
+                'assets/bg.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 120),
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  // In Basic mode, toggle center is at exactly 239.0 on the screen.
-                  // The container top edge will slice perfectly through it horizontally.
-                  final containerTop = 239.0 + (_controller.value * (430.0 - 239.0));
-                  
-                  return Stack(
-                    children: [
-                      // List Container with rounded top corners
-                      Container(
-                        margin: EdgeInsets.only(top: containerTop),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0F0D1B),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(36),
-                            topRight: Radius.circular(36),
-                          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 12),
+                  _buildHeader(),
+                  const SizedBox(height: 24),
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      final height = 186.0 + (_controller.value * (360.0 - 186.0));
+                      return SizedBox(
+                        height: height,
+                        child: OverflowBox(
+                          maxHeight: double.infinity,
+                          alignment: Alignment.topCenter,
+                          child: child,
                         ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(36),
-                            topRight: Radius.circular(36),
-                          ),
-                          child: Stack(
-                            children: [
-                              // Background glows exactly starting from the horizontal line
-                              AnimatedOpacity(
-                                opacity: _isAdvanced ? 0.0 : 1.0,
-                                duration: const Duration(milliseconds: 600),
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      height: 600,
-                                      decoration: const BoxDecoration(
-                                        gradient: RadialGradient(
-                                          center: Alignment(-0.8, -1.0),
-                                          radius: 1.2,
-                                          colors: [
-                                            Color(0xFFAA6FFF),
-                                            Color.fromRGBO(64, 64, 101, 0.0),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      height: 600,
-                                      decoration: const BoxDecoration(
-                                        gradient: RadialGradient(
-                                          center: Alignment(0.8, -1.0),
-                                          radius: 1.2,
-                                          colors: [
-                                            Color(0xFFFE6545),
-                                            Color.fromRGBO(64, 64, 101, 0.0),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // The actual list content
-                              Padding(
-                                padding: const EdgeInsets.only(top: 24),
-                                child: _buildMixSections(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Top Elements over the container
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 12),
-                          _buildHeader(),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            height: 450,
-                            child: _buildDiscAndToggle(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
+                      );
+                    },
+                    child: _buildDiscAndToggle(),
+                  ),
+                  _buildMixSections(),
+                ],
               ),
             ),
           ),
@@ -312,26 +260,23 @@ class _MixingScreenState extends State<MixingScreen>
                       child: SizedBox(
                         width: _basicSize,
                         height: _basicSize,
-                        child: ClipRect(
-                          clipper: const _TopHalfClipper(),
-                          child: ShaderMask(
-                            shaderCallback: (bounds) {
-                              return ui.Gradient.radial(
-                                Offset(bounds.width * 0.52, bounds.height * 0.46),
-                                bounds.width * 0.52,
-                                [
-                                  Colors.white,
-                                  Colors.white,
-                                  Color.fromRGBO(255, 255, 255, 0.55),
-                                  Color.fromRGBO(255, 255, 255, 0.25),
-                                  Color.fromRGBO(255, 255, 255, 0.12),
-                                ],
-                                [0.0, 0.30, 0.58, 0.82, 1.0],
-                              );
-                            },
-                            blendMode: BlendMode.dstIn,
-                            child: child!,
-                          ),
+                        child: ShaderMask(
+                          shaderCallback: (bounds) {
+                            return ui.Gradient.radial(
+                              Offset(bounds.width * 0.52, bounds.height * 0.46),
+                              bounds.width * 0.52,
+                              [
+                                Colors.white,
+                                Colors.white,
+                                const Color.fromRGBO(255, 255, 255, 0.55),
+                                const Color.fromRGBO(255, 255, 255, 0.25),
+                                const Color.fromRGBO(255, 255, 255, 0.12),
+                              ],
+                              [0.0, 0.30, 0.58, 0.82, 1.0],
+                            );
+                          },
+                          blendMode: BlendMode.dstIn,
+                          child: child!,
                         ),
                       ),
                     ),
@@ -826,16 +771,4 @@ class _MixingScreenState extends State<MixingScreen>
       ),
     );
   }
-}
-
-class _TopHalfClipper extends CustomClipper<Rect> {
-  const _TopHalfClipper();
-
-  @override
-  Rect getClip(Size size) {
-    return Rect.fromLTRB(0, 0, size.width, size.height * 0.65);
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
 }

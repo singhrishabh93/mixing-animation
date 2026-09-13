@@ -18,9 +18,9 @@ class VinylDiscPainter extends CustomPainter {
     final outerFill = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF1D1934),
-          const Color(0xFF151225),
-          const Color(0xFF0F0D1B),
+          const Color(0xFF1D1934).withOpacity(0.8),
+          const Color(0xFF151225).withOpacity(0.5),
+          Colors.transparent,
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: outerRadius));

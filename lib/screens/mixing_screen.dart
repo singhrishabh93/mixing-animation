@@ -16,15 +16,17 @@ class _MixingScreenState extends State<MixingScreen>
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _rotationAnimation;
   late final Animation<double> _offsetYAnimation;
+  late final Animation<double> _toggleYAnimation;
   bool _isAdvanced = false;
 
   static const _basicSize = 210.0;
   static const _advancedSize = 350.0;
-  static const _toggleTopInStack = 140.0;
+  static const _basicToggleTop = 140.0;
+  static const _advancedToggleTop = 25.0;
   static const _toggleHeight = 46.0;
-  static const _toggleCenterY = _toggleTopInStack + _toggleHeight / 2;
   static const _basicDiscOffsetY = 33.0;
-  static const _advancedDiscOffsetY = _toggleCenterY - _basicSize / 2;
+  // Mirror of Basic: toggle straddles the clip edge, disc extends below
+  static const _advancedDiscOffsetY = -11.0;
 
   @override
   void initState() {
@@ -52,6 +54,11 @@ class _MixingScreenState extends State<MixingScreen>
     _offsetYAnimation = Tween<double>(
       begin: _basicDiscOffsetY,
       end: _advancedDiscOffsetY,
+    ).animate(curve);
+
+    _toggleYAnimation = Tween<double>(
+      begin: _basicToggleTop,
+      end: _advancedToggleTop,
     ).animate(curve);
   }
 
@@ -138,63 +145,58 @@ class _MixingScreenState extends State<MixingScreen>
   }
 
   Widget _buildDiscAndToggle() {
-    return Stack(
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.hardEdge,
-      children: [
-        // Disc — clipped to top semicircle in local space;
-        // rotation flips it to show as bottom semicircle in Advanced
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Transform.translate(
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Transform.translate(
               offset: Offset(0, _offsetYAnimation.value),
               child: Transform.rotate(
                 angle: _rotationAnimation.value,
                 child: Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: child,
-                ),
-              ),
-            );
-          },
-          child: SizedBox(
-            width: _basicSize,
-            height: _basicSize,
-            child: ClipRect(
-              clipper: const _TopHalfClipper(),
-              child: ShaderMask(
-                shaderCallback: (bounds) {
-                  final cx = bounds.width * 0.52;
-                  final cy = bounds.height * 0.46;
-                  return ui.Gradient.radial(
-                    Offset(cx, cy),
-                    bounds.width * 0.52,
-                    [
-                      Colors.white,
-                      Colors.white,
-                      Color.fromRGBO(255, 255, 255, 0.55),
-                      Color.fromRGBO(255, 255, 255, 0.25),
-                      Color.fromRGBO(255, 255, 255, 0.12),
-                    ],
-                    [0.0, 0.3, 0.58, 0.82, 1.0],
-                  );
-                },
-                blendMode: BlendMode.dstIn,
-                child: CustomPaint(
-                  size: const Size(_basicSize, _basicSize),
-                  painter: VinylDiscPainter(),
+                  child: SizedBox(
+                    width: _basicSize,
+                    height: _basicSize,
+                    child: ClipRect(
+                      clipper: const _TopHalfClipper(),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) {
+                          return ui.Gradient.radial(
+                            Offset(bounds.width * 0.52, bounds.height * 0.46),
+                            bounds.width * 0.52,
+                            [
+                              Colors.white,
+                              Colors.white,
+                              Color.fromRGBO(255, 255, 255, 0.55),
+                              Color.fromRGBO(255, 255, 255, 0.25),
+                              Color.fromRGBO(255, 255, 255, 0.12),
+                            ],
+                            [0.0, 0.30, 0.58, 0.82, 1.0],
+                          );
+                        },
+                        blendMode: BlendMode.dstIn,
+                        child: child!,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        // Toggle
-        Positioned(
-          top: _toggleTopInStack,
-          child: _buildToggle(),
-        ),
-      ],
+            Positioned(
+              top: _toggleYAnimation.value,
+              child: _buildToggle(),
+            ),
+          ],
+        );
+      },
+      child: CustomPaint(
+        size: const Size(_basicSize, _basicSize),
+        painter: VinylDiscPainter(),
+      ),
     );
   }
 

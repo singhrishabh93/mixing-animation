@@ -40,14 +40,14 @@ class VinylDiscPainter extends CustomPainter {
 
     // Outer white border
     final outerBorder = Paint()
-      ..color = Color.fromRGBO(255, 255, 255, 0.25)
+      ..color = Color.fromRGBO(255, 255, 255, 0.20)
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth;
     canvas.drawCircle(center, outerRadius - borderWidth / 2, outerBorder);
 
     // Second ring border
     final secondBorder = Paint()
-      ..color = Color.fromRGBO(255, 255, 255, 0.15)
+      ..color = Color.fromRGBO(255, 255, 255, 0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth;
     canvas.drawCircle(center, secondRingRadius, secondBorder);
@@ -88,37 +88,57 @@ class VinylDiscPainter extends CustomPainter {
 
     // Inner ring dark border
     final innerBorder = Paint()
-      ..color = const Color(0xFF111111)
+      ..color = const Color(0xFF0A0A14)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth * 1.7;
-    canvas.drawCircle(center, grooveRadius - borderWidth, innerBorder);
+      ..strokeWidth = borderWidth * 3.5;
+    canvas.drawCircle(center, grooveRadius - borderWidth * 1.5, innerBorder);
 
-    // Album art — radial gradient (aurora/coral center)
-    final albumArt = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(-0.3, 0.2),
-        radius: 0.9,
-        colors: [
-          const Color(0xFFFE6545),
-          Color.fromRGBO(207, 92, 77, 0.75),
-          Color.fromRGBO(159, 83, 85, 0.5),
-          Color.fromRGBO(64, 64, 101, 0.0),
-        ],
-        stops: const [0.0, 0.25, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: centerAreaRadius));
-    canvas.drawCircle(center, centerAreaRadius, albumArt);
+    // Album art — three layered radial gradients (Figma aurora)
+    final auroraRadius = radius * 0.48;
 
-    // Subtle secondary glow for depth
-    final secondaryGlow = Paint()
+    // Layer 1: Orange (top-right, vivid)
+    final orangeGlow = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0.4, -0.3),
+        center: const Alignment(0.6, -0.35),
         radius: 0.7,
         colors: [
-          Color.fromRGBO(100, 80, 180, 0.3),
-          Color.fromRGBO(64, 64, 101, 0.0),
+          const Color(0xFFFE6545),
+          Color.fromRGBO(254, 101, 69, 0.9),
+          Color.fromRGBO(200, 80, 60, 0.4),
+          Color.fromRGBO(29, 25, 52, 0.0),
         ],
-      ).createShader(Rect.fromCircle(center: center, radius: centerAreaRadius));
-    canvas.drawCircle(center, centerAreaRadius, secondaryGlow);
+        stops: const [0.0, 0.25, 0.55, 0.9],
+      ).createShader(Rect.fromCircle(center: center, radius: auroraRadius));
+    canvas.drawCircle(center, auroraRadius, orangeGlow);
+
+    // Layer 2: Purple (center-left)
+    final purpleGlow = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.1, -0.1),
+        radius: 0.85,
+        colors: [
+          Color.fromRGBO(170, 111, 255, 0.95),
+          Color.fromRGBO(130, 80, 200, 0.6),
+          Color.fromRGBO(80, 50, 140, 0.25),
+          Color.fromRGBO(29, 25, 52, 0.0),
+        ],
+        stops: const [0.0, 0.3, 0.55, 0.9],
+      ).createShader(Rect.fromCircle(center: center, radius: auroraRadius));
+    canvas.drawCircle(center, auroraRadius, purpleGlow);
+
+    // Layer 3: Blue (bottom-center)
+    final blueGlow = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.15, 0.45),
+        radius: 0.7,
+        colors: [
+          Color.fromRGBO(25, 151, 255, 0.9),
+          Color.fromRGBO(40, 120, 200, 0.5),
+          Color.fromRGBO(29, 25, 52, 0.0),
+        ],
+        stops: const [0.0, 0.3, 0.8],
+      ).createShader(Rect.fromCircle(center: center, radius: auroraRadius));
+    canvas.drawCircle(center, auroraRadius, blueGlow);
 
     // Center dot
     final centerDot = Paint()

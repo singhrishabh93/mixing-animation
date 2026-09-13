@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../painters/vinyl_disc_painter.dart';
 
@@ -14,6 +15,7 @@ class _MixingScreenState extends State<MixingScreen>
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _rotationAnimation;
+  late final Animation<double> _offsetYAnimation;
   bool _isAdvanced = false;
 
   static const _basicSize = 210.0;
@@ -21,7 +23,8 @@ class _MixingScreenState extends State<MixingScreen>
   static const _toggleTopInStack = 140.0;
   static const _toggleHeight = 46.0;
   static const _toggleCenterY = _toggleTopInStack + _toggleHeight / 2;
-  static const _discOffsetY = _toggleCenterY - _basicSize / 2;
+  static const _basicDiscOffsetY = 33.0;
+  static const _advancedDiscOffsetY = _toggleCenterY - _basicSize / 2;
 
   @override
   void initState() {
@@ -44,6 +47,11 @@ class _MixingScreenState extends State<MixingScreen>
     _rotationAnimation = Tween<double>(
       begin: 0.0,
       end: -math.pi,
+    ).animate(curve);
+
+    _offsetYAnimation = Tween<double>(
+      begin: _basicDiscOffsetY,
+      end: _advancedDiscOffsetY,
     ).animate(curve);
   }
 
@@ -140,7 +148,7 @@ class _MixingScreenState extends State<MixingScreen>
           animation: _controller,
           builder: (context, child) {
             return Transform.translate(
-              offset: const Offset(0, _discOffsetY),
+              offset: Offset(0, _offsetYAnimation.value),
               child: Transform.rotate(
                 angle: _rotationAnimation.value,
                 child: Transform.scale(
@@ -155,9 +163,28 @@ class _MixingScreenState extends State<MixingScreen>
             height: _basicSize,
             child: ClipRect(
               clipper: const _TopHalfClipper(),
-              child: CustomPaint(
-                size: const Size(_basicSize, _basicSize),
-                painter: VinylDiscPainter(),
+              child: ShaderMask(
+                shaderCallback: (bounds) {
+                  final cx = bounds.width * 0.52;
+                  final cy = bounds.height * 0.46;
+                  return ui.Gradient.radial(
+                    Offset(cx, cy),
+                    bounds.width * 0.52,
+                    [
+                      Colors.white,
+                      Colors.white,
+                      Color.fromRGBO(255, 255, 255, 0.55),
+                      Color.fromRGBO(255, 255, 255, 0.25),
+                      Color.fromRGBO(255, 255, 255, 0.12),
+                    ],
+                    [0.0, 0.3, 0.58, 0.82, 1.0],
+                  );
+                },
+                blendMode: BlendMode.dstIn,
+                child: CustomPaint(
+                  size: const Size(_basicSize, _basicSize),
+                  painter: VinylDiscPainter(),
+                ),
               ),
             ),
           ),
@@ -230,7 +257,7 @@ class _TopHalfClipper extends CustomClipper<Rect> {
 
   @override
   Rect getClip(Size size) {
-    return Rect.fromLTRB(0, 0, size.width, size.height / 2);
+    return Rect.fromLTRB(0, 0, size.width, size.height * 0.65);
   }
 
   @override

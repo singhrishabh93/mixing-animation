@@ -186,6 +186,10 @@ class _MixingScreenState extends State<MixingScreen>
                 ),
               ),
             ),
+            ..._buildOrbitalElements(
+              _offsetYAnimation.value + _basicSize / 2,
+              ((_controller.value - 0.5) * 2).clamp(0.0, 1.0),
+            ),
             Positioned(
               top: _toggleYAnimation.value,
               child: _buildToggle(),
@@ -196,6 +200,127 @@ class _MixingScreenState extends State<MixingScreen>
       child: CustomPaint(
         size: const Size(_basicSize, _basicSize),
         painter: VinylDiscPainter(),
+      ),
+    );
+  }
+
+  List<Widget> _buildOrbitalElements(double discCenterY, double opacity) {
+    if (opacity <= 0) return [];
+
+    const orbitR = 158.0;
+
+    Widget at(double deg, double r, double size, Widget child) {
+      final rad = deg * math.pi / 180;
+      return Transform.translate(
+        offset: Offset(
+          r * math.sin(rad),
+          discCenterY - r * math.cos(rad) - size / 2,
+        ),
+        child: Opacity(
+          opacity: opacity,
+          child: SizedBox(width: size, height: size, child: child),
+        ),
+      );
+    }
+
+    return [
+      at(250, orbitR, 34, _iconCircle(Icons.graphic_eq)),
+      at(218, orbitR, 34, _iconCircle(Icons.tune)),
+      at(110, orbitR, 40, _imageCircle(
+        const [Color(0xFF3A5F7A), Color(0xFF6B8FA3)],
+      )),
+      at(145, orbitR, 34, _imageCircle(
+        const [Color(0xFFD4956B), Color(0xFF8B6B4A)],
+      )),
+      at(180, orbitR, 82, _activeCard()),
+      Transform.translate(
+        offset: Offset(0, discCenterY + orbitR + 60),
+        child: Opacity(
+          opacity: opacity,
+          child: const Text(
+            'Windy Evening Forest',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Manrope',
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _iconCircle(IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF2A2640),
+        border: Border.all(color: Color.fromRGBO(255, 255, 255, 0.08)),
+      ),
+      child: Icon(icon, color: Color.fromRGBO(255, 255, 255, 0.5), size: 16),
+    );
+  }
+
+
+  Widget _imageCircle(List<Color> colors) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: colors,
+        ),
+        border: Border.all(
+          color: Color.fromRGBO(255, 255, 255, 0.15),
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _activeCard() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2A3D5C), Color(0xFFD4956B)],
+        ),
+        border: Border.all(color: Color.fromRGBO(255, 255, 255, 0.1)),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: const Icon(Icons.close, size: 12, color: Colors.black),
+            ),
+          ),
+          const Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Text(
+              '4/6',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

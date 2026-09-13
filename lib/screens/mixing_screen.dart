@@ -19,6 +19,7 @@ class _MixingScreenState extends State<MixingScreen>
 
   static const _basicSize = 150.0;
   static const _advancedSize = 264.0;
+  static const _toggleTopInStack = 140.0;
 
   @override
   void initState() {
@@ -43,9 +44,11 @@ class _MixingScreenState extends State<MixingScreen>
       end: -math.pi,
     ).animate(curve);
 
+    // Basic: disc bottom aligns with toggle top (center at toggleTop - halfDisc)
+    // Advanced: disc top aligns just below toggle bottom (center shifts way down)
     _offsetYAnimation = Tween<double>(
-      begin: 0.0,
-      end: -31.0,
+      begin: -10.0,
+      end: 200.0,
     ).animate(curve);
   }
 
@@ -75,10 +78,7 @@ class _MixingScreenState extends State<MixingScreen>
             const SizedBox(height: 12),
             _buildHeader(),
             const SizedBox(height: 24),
-            _buildDisc(),
-            const SizedBox(height: 24),
-            _buildToggle(),
-            const Spacer(),
+            Expanded(child: _buildDiscAndToggle()),
           ],
         ),
       ),
@@ -133,32 +133,41 @@ class _MixingScreenState extends State<MixingScreen>
     );
   }
 
-  Widget _buildDisc() {
-    return SizedBox(
-      height: _advancedSize + 40,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _offsetYAnimation.value),
-            child: Transform.rotate(
-              angle: _rotationAnimation.value,
-              child: Transform.scale(
-                scale: _scaleAnimation.value,
-                child: child,
+  Widget _buildDiscAndToggle() {
+    return Stack(
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.none,
+      children: [
+        // Disc — rendered first so it's behind the toggle
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, _offsetYAnimation.value),
+              child: Transform.rotate(
+                angle: _rotationAnimation.value,
+                child: Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: child,
+                ),
               ),
+            );
+          },
+          child: SizedBox(
+            width: _basicSize,
+            height: _basicSize,
+            child: CustomPaint(
+              size: const Size(_basicSize, _basicSize),
+              painter: VinylDiscPainter(),
             ),
-          );
-        },
-        child: SizedBox(
-          width: _basicSize,
-          height: _basicSize,
-          child: CustomPaint(
-            size: const Size(_basicSize, _basicSize),
-            painter: VinylDiscPainter(),
           ),
         ),
-      ),
+        // Toggle — rendered second so it's on top of the disc
+        Positioned(
+          top: _toggleTopInStack,
+          child: _buildToggle(),
+        ),
+      ],
     );
   }
 

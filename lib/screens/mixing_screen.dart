@@ -139,16 +139,107 @@ class _MixingScreenState extends State<MixingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0D1B),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 12),
-            _buildHeader(),
-            Container(height: 24, color: const Color(0xFF0F0D1B)),
-            Expanded(child: _buildDiscAndToggle()),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 120),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  // In Basic mode, toggle center is at exactly 239.0 on the screen.
+                  // The container top edge will slice perfectly through it horizontally.
+                  final containerTop = 239.0 + (_controller.value * (430.0 - 239.0));
+                  
+                  return Stack(
+                    children: [
+                      // List Container with rounded top corners
+                      Container(
+                        margin: EdgeInsets.only(top: containerTop),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF0F0D1B),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(36),
+                            topRight: Radius.circular(36),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(36),
+                            topRight: Radius.circular(36),
+                          ),
+                          child: Stack(
+                            children: [
+                              // Background glows exactly starting from the horizontal line
+                              AnimatedOpacity(
+                                opacity: _isAdvanced ? 0.0 : 1.0,
+                                duration: const Duration(milliseconds: 600),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      height: 600,
+                                      decoration: const BoxDecoration(
+                                        gradient: RadialGradient(
+                                          center: Alignment(-0.8, -1.0),
+                                          radius: 1.2,
+                                          colors: [
+                                            Color(0xFFAA6FFF),
+                                            Color.fromRGBO(64, 64, 101, 0.0),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 600,
+                                      decoration: const BoxDecoration(
+                                        gradient: RadialGradient(
+                                          center: Alignment(0.8, -1.0),
+                                          radius: 1.2,
+                                          colors: [
+                                            Color(0xFFFE6545),
+                                            Color.fromRGBO(64, 64, 101, 0.0),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // The actual list content
+                              Padding(
+                                padding: const EdgeInsets.only(top: 24),
+                                child: _buildMixSections(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Top Elements over the container
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 12),
+                          _buildHeader(),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            height: 450,
+                            child: _buildDiscAndToggle(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 30,
+            child: SafeArea(child: _buildMiniPlayer()),
+          ),
+        ],
       ),
     );
   }
@@ -210,7 +301,7 @@ class _MixingScreenState extends State<MixingScreen>
           builder: (context, child) {
             return Stack(
               alignment: Alignment.topCenter,
-              clipBehavior: Clip.hardEdge,
+              clipBehavior: Clip.none,
               children: [
                 Transform.translate(
                   offset: Offset(0, _offsetYAnimation.value),
@@ -489,6 +580,249 @@ class _MixingScreenState extends State<MixingScreen>
             fontFamily: 'Manrope',
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMixSections() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionHeader('Dwellspring Mixes'),
+        SizedBox(
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              _buildMixCard(title: "Distant\nThunderstorm", volume: "22%", hasImage: true),
+              _buildMixCard(title: "Windy Evening\nForest", volume: "92%", hasImage: true, fullPurpleFill: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildSectionHeader('My Mixes'),
+        SizedBox(
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              _buildMixCard(title: "Train sleep\nRide", volume: "12%"),
+              _buildMixCard(title: "Sleep Ride\nwith Train", volume: "61%", fullPurpleFill: true),
+              _buildMixCard(title: "Sleep Ride\nwith Bus", volume: "82%", fullPurpleFill: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildSectionHeader('My Noises'),
+        SizedBox(
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              _buildMixCard(title: "White noise\nCustomise...", volume: "31%", fullPurpleFill: true),
+              _buildMixCard(title: "Brown noise", volume: "12%"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color.fromRGBO(255, 255, 255, 0.6),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Manrope',
+            ),
+          ),
+          const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMixCard({
+    required String title,
+    required String volume,
+    bool hasImage = false,
+    bool fullPurpleFill = false,
+  }) {
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(right: 12, top: 12, bottom: 12, left: 12),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1D1934),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                if (hasImage)
+                  Container(
+                    height: 56,
+                    width: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 42),
+                    child: const Icon(Icons.image, color: Colors.white54, size: 24),
+                  )
+                else
+                  const Icon(Icons.graphic_eq, color: Colors.white, size: 32),
+                
+                const SizedBox(height: 12),
+                Expanded(
+                  child: fullPurpleFill 
+                    ? Container(
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFC49BFF),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          )
+                        ),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          title, 
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'Manrope'),
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          title, 
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'Manrope'),
+                        ),
+                      ),
+                ),
+                if (!fullPurpleFill) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.volume_up, color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          volume,
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1D1934),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.volume_up, color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          volume,
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Positioned(
+            top: -8,
+            left: -8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.black, size: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniPlayer() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1D1934),
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [Color(0xFFFE6545), Color(0xFFAA6FFF)],
+              ),
+            ),
+            child: Center(
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF0F0D1B),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Icon(Icons.graphic_eq, color: Colors.white, size: 16),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'My Mix',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'Manrope'),
+            ),
+          ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.pause, color: Colors.black),
+          ),
+        ],
       ),
     );
   }

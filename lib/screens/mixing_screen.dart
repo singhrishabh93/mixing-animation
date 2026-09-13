@@ -14,12 +14,14 @@ class _MixingScreenState extends State<MixingScreen>
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _rotationAnimation;
-  late final Animation<double> _offsetYAnimation;
   bool _isAdvanced = false;
 
-  static const _basicSize = 150.0;
-  static const _advancedSize = 264.0;
+  static const _basicSize = 210.0;
+  static const _advancedSize = 350.0;
   static const _toggleTopInStack = 140.0;
+  static const _toggleHeight = 46.0;
+  static const _toggleCenterY = _toggleTopInStack + _toggleHeight / 2;
+  static const _discOffsetY = _toggleCenterY - _basicSize / 2;
 
   @override
   void initState() {
@@ -42,13 +44,6 @@ class _MixingScreenState extends State<MixingScreen>
     _rotationAnimation = Tween<double>(
       begin: 0.0,
       end: -math.pi,
-    ).animate(curve);
-
-    // Basic: disc bottom aligns with toggle top (center at toggleTop - halfDisc)
-    // Advanced: disc top aligns just below toggle bottom (center shifts way down)
-    _offsetYAnimation = Tween<double>(
-      begin: -10.0,
-      end: 200.0,
     ).animate(curve);
   }
 
@@ -74,10 +69,11 @@ class _MixingScreenState extends State<MixingScreen>
       backgroundColor: const Color(0xFF0F0D1B),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 12),
             _buildHeader(),
-            const SizedBox(height: 24),
+            Container(height: 24, color: const Color(0xFF0F0D1B)),
             Expanded(child: _buildDiscAndToggle()),
           ],
         ),
@@ -136,14 +132,15 @@ class _MixingScreenState extends State<MixingScreen>
   Widget _buildDiscAndToggle() {
     return Stack(
       alignment: Alignment.topCenter,
-      clipBehavior: Clip.none,
+      clipBehavior: Clip.hardEdge,
       children: [
-        // Disc — rendered first so it's behind the toggle
+        // Disc — clipped to top semicircle in local space;
+        // rotation flips it to show as bottom semicircle in Advanced
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
             return Transform.translate(
-              offset: Offset(0, _offsetYAnimation.value),
+              offset: const Offset(0, _discOffsetY),
               child: Transform.rotate(
                 angle: _rotationAnimation.value,
                 child: Transform.scale(
@@ -156,13 +153,16 @@ class _MixingScreenState extends State<MixingScreen>
           child: SizedBox(
             width: _basicSize,
             height: _basicSize,
-            child: CustomPaint(
-              size: const Size(_basicSize, _basicSize),
-              painter: VinylDiscPainter(),
+            child: ClipRect(
+              clipper: const _TopHalfClipper(),
+              child: CustomPaint(
+                size: const Size(_basicSize, _basicSize),
+                painter: VinylDiscPainter(),
+              ),
             ),
           ),
         ),
-        // Toggle — rendered second so it's on top of the disc
+        // Toggle
         Positioned(
           top: _toggleTopInStack,
           child: _buildToggle(),
@@ -175,6 +175,7 @@ class _MixingScreenState extends State<MixingScreen>
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
+        color: const Color(0xFF0F0D1B),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
           color: Color.fromRGBO(254, 101, 69, 0.4),
@@ -222,4 +223,16 @@ class _MixingScreenState extends State<MixingScreen>
       ),
     );
   }
+}
+
+class _TopHalfClipper extends CustomClipper<Rect> {
+  const _TopHalfClipper();
+
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTRB(0, 0, size.width, size.height / 2);
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
 }

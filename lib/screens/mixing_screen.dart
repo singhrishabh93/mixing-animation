@@ -106,14 +106,20 @@ class _MixingScreenState extends State<MixingScreen>
 
     final currentAngle = (index * 45.0 + _orbitTo) % 360;
     var delta = (180.0 - currentAngle) % 360;
-    if (delta <= 0) delta += 360;
-    if (delta < 1) return;
+    
+    if (delta > 180) {
+      delta -= 360;
+    } else if (delta < -180) {
+      delta += 360;
+    }
+    
+    if (delta.abs() < 1) return;
 
     _orbitFrom = _orbitTo;
     _orbitTo = _orbitTo + delta;
 
     _orbitController.duration = Duration(
-      milliseconds: (600 + delta * 4.0).round().clamp(800, 2000),
+      milliseconds: (600 + delta.abs() * 4.0).round().clamp(800, 2000),
     );
     _orbitAnim = Tween<double>(begin: _orbitFrom, end: _orbitTo).animate(
       CurvedAnimation(parent: _orbitController, curve: Curves.easeInOutCubic),
